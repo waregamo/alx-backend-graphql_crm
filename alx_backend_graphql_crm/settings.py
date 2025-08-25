@@ -134,5 +134,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRONJOBS = [
+    # Heartbeat every 5 minutes
     ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
+
+    # Low stock update every 12 hours
+    ('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]

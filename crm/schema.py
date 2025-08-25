@@ -221,4 +221,41 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
+
+
+
+  # --- UpdateLowStockProducts ---
+class UpdateLowStockProductsPayload(graphene.ObjectType):
+    updated_products = List(ProductType)
+    success = graphene.Boolean()
+    message = graphene.String()
+
+class UpdateLowStockProducts(graphene.Mutation):
+    Output = UpdateLowStockProductsPayload
+
+    @staticmethod
+    def mutate(root, info):
+        try:
+            low_stock_products = Product.objects.filter(stock__lt=10)
+            updated_products = []
+            with transaction.atomic():
+                for product in low_stock_products:
+                    product.stock += 10  # simulate restocking
+                    product.save()
+                    updated_products.append(product)
+
+            message = f"Updated {len(updated_products)} product(s)."
+            return UpdateLowStockProductsPayload(
+                updated_products=updated_products,
+                success=True,
+                message=message,
+            )
+        except Exception as e:
+            return UpdateLowStockProductsPayload(
+                updated_products=[],
+                success=False,
+                message=f"Failed to update low stock: {str(e)}"
+            )
+  
 
