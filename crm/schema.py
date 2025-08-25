@@ -9,6 +9,7 @@ from django.utils import timezone
 from decimal import Decimal as PyDecimal
 
 from .models import Customer, Product, Order
+from crm.models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
 # Graphene types with Relay Node support for filters
