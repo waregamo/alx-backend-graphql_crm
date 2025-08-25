@@ -1,32 +1,38 @@
+import datetime
 import os
-from datetime import datetime
 import requests
-
-LOG_FILE = "/tmp/crm_heartbeat_log.txt"
-GRAPHQL_URL = "http://localhost:8000/graphql"
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 
 def log_crm_heartbeat():
-    """
-    Logs a heartbeat message every 5 minutes to check CRM health.
-    Optionally queries GraphQL 'hello' field.
-    """
-    timestamp = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
-    message = f"{timestamp} CRM is alive"
+    now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+    log_message = f"{now} CRM is alive\n"
 
-    # Append heartbeat message
-    with open(LOG_FILE, "a") as f:
-        f.write(message + "\n")
+    log_file = "/tmp/crm_heartbeat_log.txt"
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
-    # Optional: Check GraphQL hello field
+    with open(log_file, "a") as f:
+        f.write(log_message)
+
+    # --- Optional GraphQL check ---
     try:
-        query = {"query": "{ hello }"}
-        response = requests.post(GRAPHQL_URL, json=query)
-        if response.ok:
-            data = response.json()
-            hello_msg = data.get("data", {}).get("hello")
-            if hello_msg:
-                with open(LOG_FILE, "a") as f:
-                    f.write(f"{timestamp} GraphQL hello → {hello_msg}\n")
+        transport = RequestsHTTPTransport(
+            url="http://localhost:8000/graphql",
+            verify=False,
+            retries=3,
+        )
+        client = Client(transport=transport, fetch_schema_from_transport=True)
+
+        query = gql(
+            """
+            query {
+                hello
+            }
+            """
+        )
+        response = client.execute(query)
+        with open(log_file, "a") as f:
+            f.write(f"{now} GraphQL hello response: {response['hello']}\n")
     except Exception as e:
-        with open(LOG_FILE, "a") as f:
-            f.write(f"{timestamp} GraphQL check failed: {e}\n")
+        with open(log_file, "a") as f:
+            f.write(f"{now} GraphQL check failed: {e}\n")
