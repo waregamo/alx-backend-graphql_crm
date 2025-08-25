@@ -41,7 +41,19 @@ INSTALLED_APPS = [
     'graphene_django',
     'crm',
     'django_crontab',
+    "django_celery_beat",
 ]
+
+
+# Celery Configuration
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+
+from celery.schedules import crontab
 
 GRAPHENE = {
     "SCHEMA": "alx_backend_graphql_crm.schema.schema"  # path to schema object
@@ -140,3 +152,12 @@ CRONJOBS = [
     # Low stock update every 12 hours
     ('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "generate-crm-report": {
+        "task": "crm.tasks.generate_crm_report",
+        "schedule": crontab(day_of_week="mon", hour=6, minute=0),
+    },
+}
