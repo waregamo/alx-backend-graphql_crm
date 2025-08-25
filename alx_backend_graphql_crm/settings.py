@@ -40,11 +40,16 @@ INSTALLED_APPS = [
     'django_filters',
     'graphene_django',
     'crm',
+    'django_crontab',
 ]
 
 GRAPHENE = {
     "SCHEMA": "alx_backend_graphql_crm.schema.schema"  # path to schema object
 }
+
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,3 +132,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CRONJOBS = [
+    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
+]
